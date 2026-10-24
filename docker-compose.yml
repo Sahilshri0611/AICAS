@@ -1,0 +1,38 @@
+# ── CrimeSense AI — Local Infrastructure ───────────────────────────────
+# Brings up PostgreSQL + PostGIS. Backend/frontend are run locally (see README)
+# or can be uncommented to run fully containerized.
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: crimesense-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crimesense}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crimesense}
+      POSTGRES_DB: ${POSTGRES_DB:-crimesense}
+    ports:
+      - "5432:5432"
+    volumes:
+      - crimesense_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crimesense} -d ${POSTGRES_DB:-crimesense}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Optional: containerized backend ──
+  # backend:
+  #   build: ./backend
+  #   container_name: crimesense-api
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   environment:
+  #     DATABASE_URL: postgresql+psycopg://crimesense:crimesense@db:5432/crimesense
+  #   ports:
+  #     - "8000:8000"
+  #   command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  crimesense_pgdata:

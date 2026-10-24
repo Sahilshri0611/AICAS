@@ -1,0 +1,448 @@
+You are a Principal Software Architect, Senior Full Stack Engineer, AI Engineer, GIS Engineer, and Product Designer.
+
+Your task is to build a complete production-grade application called:
+
+CrimeSense AI
+AI-Powered Crime Intelligence & Predictive Analytics Platform for Law Enforcement
+
+The application must look like a modern Fortune 500 SaaS product and should feel comparable to:
+
+- Palantir Gotham
+- Datadog
+- Microsoft Security Center
+- Salesforce Command Center
+- Splunk Mission Control
+- ArcGIS Intelligence
+- IBM i2 Analyst Notebook
+
+The application should be fully functional with realistic data and a professional UI.
+
+----------------------------------------------------
+IMPORTANT REQUIREMENTS
+----------------------------------------------------
+
+Tech Stack:
+
+Frontend:
+- React JS
+- TypeScript
+- Vite
+- Tailwind CSS
+- ShadCN UI
+- Recharts
+- React Query
+- Zustand
+- React Hook Form
+- Leaflet Maps
+
+Backend:
+- Python FastAPI
+- SQLAlchemy 2.0
+- Alembic
+- Pydantic
+- JWT Authentication
+
+Database:
+- PostgreSQL
+- PostGIS
+
+AI:
+- GROQ API
+- Llama 3.3
+- OCR using PyTesseract
+
+ML:
+- Scikit-Learn
+- XGBoost
+- Pandas
+- NumPy
+
+Dataset:
+- Kaggle Chicago Crime Dataset
+
+Architecture:
+- Frontend and Backend separated
+- REST APIs
+- Enterprise-grade folder structure
+- Production-ready code
+- Clean architecture
+- Repository pattern
+- Service layer pattern
+
+----------------------------------------------------
+PROJECT MODULES
+----------------------------------------------------
+
+1. COMMAND DASHBOARD
+
+Executive Overview Dashboard
+
+KPI Cards:
+
+- Total Incidents
+- Active Alerts
+- High Risk Zones
+- Cases Under Review
+- Prediction Accuracy
+- AI Parsed FIRs
+
+Charts:
+
+- Crimes By Category
+- Crime Trend Analysis
+- Weekly Incident Trend
+- Risk Distribution
+- Alert Severity Distribution
+
+Widgets:
+
+- Top Crime Areas
+- Recent Incident Feed
+- Emerging Hotspots
+- Patrol Recommendations
+
+----------------------------------------------------
+
+2. INCIDENT MAP
+
+Leaflet Map
+
+Features:
+
+- Incident Markers
+- Heatmap Layer
+- Hotspot Layer
+- Crime Clustering
+- Risk Visualization
+- Area Filters
+- Date Filters
+- Crime Type Filters
+
+Marker Colors:
+
+Critical = Red
+High = Orange
+Medium = Blue
+Low = Gray
+
+Map Interactions:
+
+- Click marker
+- View incident details
+- Open FIR
+- View linked cases
+
+----------------------------------------------------
+
+3. FIR OCR & AI PARSING
+
+Upload FIR:
+
+Supported Files:
+
+- JPG
+- PNG
+- PDF
+
+Workflow:
+
+Upload
+→ OCR
+→ Text Extraction
+→ LLM Parsing
+→ Entity Extraction
+→ Structured Crime Record
+
+Use PyTesseract.
+
+Extract:
+
+- Crime Type
+- Location
+- Date
+- Time
+- Suspect Details
+- Victim Details
+- Vehicle Information
+- Weapon Information
+- Incident Summary
+
+Generate:
+
+- Crime ID
+- Risk Score
+- Confidence Scores
+
+Display confidence percentage.
+
+Flag low confidence fields.
+
+----------------------------------------------------
+
+4. CRIME RECORDS MODULE
+
+Data Grid
+
+Columns:
+
+- Crime ID
+- Case Number
+- Crime Type
+- Location
+- Latitude
+- Longitude
+- Area
+- Date
+- Time
+- Risk Score
+- Status
+
+Features:
+
+- Search
+- Filter
+- Pagination
+- Export CSV
+- Export Excel
+- Record Details
+
+----------------------------------------------------
+
+5. PREDICTIVE ANALYTICS
+
+Use Chicago Crime Dataset.
+
+Build ML models for:
+
+- Hotspot Prediction
+- Crime Volume Forecasting
+- Area Risk Score Forecasting
+
+Visualizations:
+
+- Forecast Trends
+- Forecast Confidence Bands
+- High Risk Area Prediction
+- Time Based Prediction
+- Weekly Forecast
+
+Display:
+
+Prediction Accuracy
+Precision
+Recall
+F1 Score
+
+----------------------------------------------------
+
+6. HOTSPOT INTELLIGENCE
+
+Generate hotspot scores.
+
+Heatmap View.
+
+Risk Ranking.
+
+Top 10 Predicted Areas.
+
+Area Risk Index.
+
+Historical Comparison.
+
+----------------------------------------------------
+
+7. ALERT MANAGEMENT
+
+Alert Categories:
+
+- Crime Spike
+- High Risk Incident
+- Repeat Offender
+- Emerging Hotspot
+- System Alert
+
+Functions:
+
+- Acknowledge Alert
+- Assign Alert
+- Close Alert
+- Add Notes
+
+Dashboard:
+
+- Active Alerts
+- Alert Severity
+- Alert Trends
+
+----------------------------------------------------
+
+8. SUSPECT NETWORK ANALYSIS
+
+Interactive Graph
+
+Node Types:
+
+- Suspect
+- Incident
+- Location
+
+Relationships:
+
+- Same suspect
+- Same vehicle
+- Same location
+- Similar MO
+
+Analytics:
+
+- Degree Centrality
+- Connected Components
+- Cluster Detection
+
+Display graph visualization.
+
+----------------------------------------------------
+
+9. MODEL MANAGEMENT
+
+Track:
+
+- Model Version
+- Accuracy
+- Precision
+- Recall
+- F1
+
+Visualize:
+
+- Confusion Matrix
+- Metrics Trends
+
+Actions:
+
+- Retrain Model
+- Activate Model
+- Archive Model
+
+----------------------------------------------------
+
+10. RBAC
+
+Roles:
+
+Admin
+Commissioner
+Commander
+Investigator
+Officer
+
+Permissions assigned by role.
+
+----------------------------------------------------
+
+UI REQUIREMENTS
+----------------------------------------------------
+
+Design Style:
+
+- Enterprise SaaS
+- Clean
+- Modern
+- Premium
+
+Use:
+
+- Glass cards
+- Clean white background
+- Professional iconography
+- Large executive KPIs
+- Responsive layout
+
+Sidebar:
+
+Dashboard
+Incident Map
+FIR Parser
+Crime Records
+Predictive Analytics
+Hotspot Intelligence
+Alerts
+Network Analysis
+Model Management
+Settings
+
+Topbar:
+
+Search
+Notifications
+User Profile
+
+----------------------------------------------------
+
+API REQUIREMENTS
+----------------------------------------------------
+
+Create all FastAPI endpoints.
+
+Follow:
+
+api/v1/auth
+api/v1/incidents
+api/v1/crimes
+api/v1/alerts
+api/v1/analytics
+api/v1/models
+api/v1/fir-parser
+api/v1/network
+
+Use proper validation.
+
+Use pagination.
+
+Use filtering support.
+
+----------------------------------------------------
+
+DATABASE
+----------------------------------------------------
+
+Generate PostgreSQL schema.
+
+Use foreign keys.
+
+Use indexes.
+
+Use optimized relationships.
+
+Use PostGIS for geographic coordinates.
+
+----------------------------------------------------
+
+FINAL DELIVERABLES
+----------------------------------------------------
+
+Generate:
+
+1. Full Project Structure
+2. Backend Folder Structure
+3. Frontend Folder Structure
+4. PostgreSQL Schema
+5. SQLAlchemy Models
+6. API Endpoints
+7. Pydantic Schemas
+8. React Pages
+9. Dashboard Components
+10. Database Seed Data
+11. Kaggle Data Ingestion Scripts
+12. OCR Service
+13. LLM Service
+14. ML Pipeline
+15. Predictive Analytics Engine
+16. Deployment Instructions
+
+The backend must remain scalable and production-ready.
+
+The frontend should look like a Fortune 500 government intelligence platform.
+
+Generate code module-by-module.
+Do not skip implementation details.
