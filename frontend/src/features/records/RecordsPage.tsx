@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Database, Search, Download, FileSpreadsheet, ChevronLeft, ChevronRight, Eye, FilePlus2, Upload,
+  ArrowUpDown, ArrowUp, ArrowDown, X, Building2, MapPin, Calendar, Shield, ExternalLink,
 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Card } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import {
 import { LoadingState, EmptyState } from "@/components/common/states";
 import { fmtDate, fmtNumber } from "@/lib/format";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { apiError } from "@/lib/api";
 import { useCan } from "@/lib/rbac";
 import { useGeography } from "@/features/reference/hooks";
@@ -25,9 +27,28 @@ import { useCrimes, useCrimeTypes, exportRecords, type RecordFilters } from "./h
 import { RecordDetailDialog } from "./RecordDetailDialog";
 import { NewCaseDialog } from "./NewCaseDialog";
 import { ImportCasesDialog } from "./ImportCasesDialog";
+import type { Incident } from "@/types";
 
 const RISKS = ["all", "Critical", "High", "Medium", "Low"];
 const STATUSES = ["all", "Open", "Under Review", "Assigned", "Closed"];
+
+type SortColumn = "crime_id" | "primary_type" | "police_station" | "occurred_at" | "risk_score";
+
+function getPagePills(current: number, total: number): number[] {
+  if (total <= 5) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  const pills: number[] = [1];
+  if (current > 3) pills.push(-1);
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  for (let i = start; i <= end; i++) {
+    pills.push(i);
+  }
+  if (current < total - 2) pills.push(-1);
+  pills.push(total);
+  return pills;
+}
 
 export function RecordsPage() {
   const [sp, setSp] = useSearchParams();
@@ -39,6 +60,10 @@ export function RecordsPage() {
   const [zone, setZone] = useState("all");
   const [station, setStation] = useState("all");
   const [page, setPage] = useState(1);
+  const [sortCol, setSortCol] = useState<SortColumn>("occurred_at");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [quickRecord, setQuickRecord] = useState<Incident | null>(null);
+  const [jumpPage, setJumpPage] = useState("");
   const [detailId, setDetailId] = useState<number | null>(null);
   const [newOpen, setNewOpen] = useState(sp.get("new") === "1");
   const [importOpen, setImportOpen] = useState(false);
@@ -59,6 +84,16 @@ export function RecordsPage() {
     return () => clearTimeout(t);
   }, [search]);
 
+  const handleSort = (col: SortColumn) => {
+    if (sortCol === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortCol(col);
+      setSortDir("desc");
+    }
+    setPage(1);
+  };
+
   const filters: RecordFilters = {
     search: debounced || undefined,
     crime_type: crimeType,
@@ -68,6 +103,7 @@ export function RecordsPage() {
     station,
     page,
     page_size: 15,
+    order_by: `${sortCol}_${sortDir}`,
   };
   const { data, isLoading, isFetching } = useCrimes(filters);
   const types = useCrimeTypes();
@@ -175,20 +211,84 @@ export function RecordsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Crime ID</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Police Station</TableHead>
+                  <TableHead
+                    className="cursor-pointer select-none font-semibold transition-colors hover:text-foreground"
+                    onClick={() => handleSort("crime_id")}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Crime ID</span>
+                      {sortCol === "crime_id" ? (
+                        sortDir === "asc" ? <ArrowUp className="h-3.5 w-3.5 text-primary" /> : <ArrowDown className="h-3.5 w-3.5 text-primary" />
+                      ) : (
+                        <ArrowUpDown className="h-3 w-3 text-muted-foreground/40 hover:text-muted-foreground" />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer select-none font-semibold transition-colors hover:text-foreground"
+                    onClick={() => handleSort("primary_type")}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Type</span>
+                      {sortCol === "primary_type" ? (
+                        sortDir === "asc" ? <ArrowUp className="h-3.5 w-3.5 text-primary" /> : <ArrowDown className="h-3.5 w-3.5 text-primary" />
+                      ) : (
+                        <ArrowUpDown className="h-3 w-3 text-muted-foreground/40 hover:text-muted-foreground" />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer select-none font-semibold transition-colors hover:text-foreground"
+                    onClick={() => handleSort("police_station")}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Police Station</span>
+                      {sortCol === "police_station" ? (
+                        sortDir === "asc" ? <ArrowUp className="h-3.5 w-3.5 text-primary" /> : <ArrowDown className="h-3.5 w-3.5 text-primary" />
+                      ) : (
+                        <ArrowUpDown className="h-3 w-3 text-muted-foreground/40 hover:text-muted-foreground" />
+                      )}
+                    </div>
+                  </TableHead>
                   <TableHead>Location</TableHead>
-                  <TableHead>Date/Time</TableHead>
-                  <TableHead>Risk</TableHead>
+                  <TableHead
+                    className="cursor-pointer select-none font-semibold transition-colors hover:text-foreground"
+                    onClick={() => handleSort("occurred_at")}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Date/Time</span>
+                      {sortCol === "occurred_at" ? (
+                        sortDir === "asc" ? <ArrowUp className="h-3.5 w-3.5 text-primary" /> : <ArrowDown className="h-3.5 w-3.5 text-primary" />
+                      ) : (
+                        <ArrowUpDown className="h-3 w-3 text-muted-foreground/40 hover:text-muted-foreground" />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer select-none font-semibold transition-colors hover:text-foreground"
+                    onClick={() => handleSort("risk_score")}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Risk</span>
+                      {sortCol === "risk_score" ? (
+                        sortDir === "asc" ? <ArrowUp className="h-3.5 w-3.5 text-primary" /> : <ArrowDown className="h-3.5 w-3.5 text-primary" />
+                      ) : (
+                        <ArrowUpDown className="h-3 w-3 text-muted-foreground/40 hover:text-muted-foreground" />
+                      )}
+                    </div>
+                  </TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">View</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.items.map((r) => (
-                  <TableRow key={r.id} className="cursor-pointer" onClick={() => setDetailId(r.id)}>
-                    <TableCell className="font-mono text-xs font-medium">{r.crime_id}</TableCell>
+                  <TableRow
+                    key={r.id}
+                    className="cursor-pointer transition-colors hover:bg-accent/40"
+                    onClick={() => setQuickRecord(r)}
+                  >
+                    <TableCell className="font-mono text-xs font-medium text-foreground">{r.crime_id}</TableCell>
                     <TableCell className="font-medium">
                       {r.primary_type}
                       {r.case_number && <p className="font-mono text-[11px] font-normal text-muted-foreground">{r.case_number}</p>}
@@ -208,7 +308,12 @@ export function RecordsPage() {
                     </TableCell>
                     <TableCell><Badge variant="secondary">{r.status}</Badge></TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setDetailId(r.id); }}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Open Case File"
+                        onClick={(e) => { e.stopPropagation(); setDetailId(r.id); }}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -216,20 +321,171 @@ export function RecordsPage() {
                 ))}
               </TableBody>
             </Table>
-            <div className="flex items-center justify-between border-t px-4 py-3">
-              <span className="text-sm text-muted-foreground">Page {data.page} of {data.pages}</span>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                  <ChevronLeft className="h-4 w-4" /> Prev
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t px-4 py-3 text-sm">
+              <div className="text-xs text-muted-foreground">
+                Total <span className="font-semibold text-foreground">{fmtNumber(data.total)}</span> cases • Page{" "}
+                <span className="font-semibold text-foreground">{data.page}</span> of{" "}
+                <span className="font-semibold text-foreground">{data.pages}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="h-8 px-2.5 text-xs"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Prev
                 </Button>
-                <Button variant="outline" size="sm" disabled={page >= data.pages} onClick={() => setPage((p) => p + 1)}>
-                  Next <ChevronRight className="h-4 w-4" />
+
+                {/* Page number buttons */}
+                <div className="hidden sm:flex items-center gap-1">
+                  {getPagePills(data.page, data.pages).map((p, idx) =>
+                    p === -1 ? (
+                      <span key={`ellipsis-${idx}`} className="px-1 text-xs text-muted-foreground select-none">…</span>
+                    ) : (
+                      <Button
+                        key={p}
+                        variant={p === data.page ? "default" : "outline"}
+                        size="sm"
+                        className={cn("h-8 w-8 p-0 text-xs", p === data.page && "pointer-events-none font-bold")}
+                        onClick={() => setPage(p)}
+                      >
+                        {p}
+                      </Button>
+                    )
+                  )}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= data.pages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="h-8 px-2.5 text-xs"
+                >
+                  Next <ChevronRight className="h-3.5 w-3.5 ml-1" />
                 </Button>
+
+                {/* Jump to Page */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const p = parseInt(jumpPage, 10);
+                    if (!isNaN(p) && p >= 1 && p <= data.pages) {
+                      setPage(p);
+                      setJumpPage("");
+                    }
+                  }}
+                  className="flex items-center gap-1 ml-2"
+                >
+                  <Input
+                    type="number"
+                    min={1}
+                    max={data.pages}
+                    placeholder="Jump…"
+                    value={jumpPage}
+                    onChange={(e) => setJumpPage(e.target.value)}
+                    className="h-8 w-16 text-xs px-2"
+                  />
+                  <Button type="submit" variant="secondary" size="sm" className="h-8 px-2 text-xs">
+                    Go
+                  </Button>
+                </form>
               </div>
             </div>
           </>
         )}
       </Card>
+
+      {/* Quick-view slide drawer */}
+      {quickRecord && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity">
+          <div className="fixed inset-0" onClick={() => setQuickRecord(null)} />
+          <div className="relative z-10 flex h-full w-full max-w-md flex-col border-l border-border bg-card p-6 shadow-2xl animate-in slide-in-from-right duration-200 overflow-y-auto">
+            <div className="flex items-center justify-between border-b pb-4">
+              <div>
+                <p className="font-mono text-base font-bold text-foreground">{quickRecord.crime_id}</p>
+                <p className="text-xs text-muted-foreground">{quickRecord.case_number || "Official Incident Docket"}</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setQuickRecord(null)} className="h-8 w-8 rounded-full">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="mt-5 space-y-4 flex-1">
+              <div className="flex items-center justify-between">
+                <RiskBadge level={quickRecord.risk_level} />
+                <Badge variant="secondary">{quickRecord.status}</Badge>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Primary Classification</p>
+                <p className="mt-1 text-lg font-bold text-foreground">{quickRecord.primary_type}</p>
+                {quickRecord.case_number && (
+                  <p className="text-xs text-muted-foreground font-mono mt-0.5">Docket: {quickRecord.case_number}</p>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-border/60 bg-muted/30 p-3.5 space-y-2.5 text-xs">
+                <div className="flex items-start gap-2">
+                  <Building2 className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <span className="text-muted-foreground">Police Station: </span>
+                    <span className="font-medium text-foreground">{quickRecord.police_station || "—"}</span>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <span className="text-muted-foreground">Location: </span>
+                    <span className="font-medium text-foreground">{quickRecord.block || quickRecord.location_description || "—"}</span>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Calendar className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <span className="text-muted-foreground">Occurred: </span>
+                    <span className="font-medium text-foreground">{fmtDate(quickRecord.occurred_at)}</span>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Shield className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <span className="text-muted-foreground">Risk Index: </span>
+                    <span className="font-mono font-semibold text-foreground">{quickRecord.risk_score.toFixed(2)} / 1.00</span>
+                  </div>
+                </div>
+              </div>
+
+              {quickRecord.description && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Incident Narrative</p>
+                  <p className="mt-1 rounded-lg bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+                    {quickRecord.description}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 border-t pt-4 flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  const id = quickRecord.id;
+                  setQuickRecord(null);
+                  setDetailId(id);
+                }}
+              >
+                <ExternalLink className="mr-1.5 h-4 w-4" /> Open Full Case File
+              </Button>
+              <Button variant="outline" onClick={() => setQuickRecord(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <RecordDetailDialog id={detailId} onClose={() => setDetailId(null)} />
       <NewCaseDialog open={newOpen} onOpenChange={setNewOpen} onCreated={(id) => { setPage(1); setDetailId(id); }} />

@@ -1,12 +1,15 @@
 import { MapContainer, TileLayer, CircleMarker, Tooltip as LTooltip } from "react-leaflet";
-import { Flame, TrendingUp, TrendingDown, Trophy } from "lucide-react";
+import { Flame, TrendingUp, TrendingDown, Trophy, Info } from "lucide-react";
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip, CartesianGrid, Legend as RLegend,
+} from "recharts";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ChartCard } from "@/components/common/ChartCard";
 import { Card } from "@/components/ui/card";
 import { LoadingState, ErrorState } from "@/components/common/states";
 import { cn } from "@/lib/utils";
 import { fmtNumber } from "@/lib/format";
-import { CITY_BOUNDS, CITY_CENTER, CITY_ZOOM } from "@/lib/geo";
+import { CITY_BOUNDS, CITY_CENTER, CITY_ZOOM, CARTO_DARK_URL, CARTO_ATTRIBUTION, CARTO_SUBDOMAINS, HAS_CARTO_KEY } from "@/lib/geo";
 import { useHotspots } from "./hooks";
 
 function heatFill(score: number) {
@@ -16,8 +19,21 @@ function heatFill(score: number) {
   return "#94a3b8";
 }
 
+const HOTSPOT_LEGEND = [
+  { label: "Critical Risk (Score ≥ 0.70)", color: "#ef4444" },
+  { label: "High Risk (Score 0.50 - 0.70)", color: "#f97316" },
+  { label: "Moderate Risk (Score 0.30 - 0.50)", color: "#3b82f6" },
+  { label: "Low Baseline (Score < 0.30)", color: "#94a3b8" },
+];
+
 export function HotspotsPage() {
   const { data, isLoading, isError } = useHotspots(10);
+
+  const comparisonData = (data?.top_areas ?? []).slice(0, 8).map((a) => ({
+    name: a.area.replace(" Police Station", "").replace(" PS", ""),
+    "Hotspot Score": Math.round(a.hotspot_score * 100),
+    "Risk Index": Math.round(a.risk_index * 100),
+  }));
 
   return (
     <div>
@@ -31,33 +47,94 @@ export function HotspotsPage() {
       {isError && <ErrorState />}
 
       {data && (
-        <div className="grid gap-4 lg:grid-cols-5">
-          {/* Heat map view */}
-          <ChartCard title="Hotspot Heatmap" description="Area risk concentration" className="lg:col-span-3" bodyClassName="p-0">
-            <div className="h-[62vh] overflow-hidden rounded-b-xl">
-              <MapContainer center={CITY_CENTER} zoom={CITY_ZOOM} maxBounds={CITY_BOUNDS} minZoom={10} className="h-full w-full" scrollWheelZoom>
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                {data.heat_points.map((p, i) => (
-                  <CircleMarker
-                    key={i}
-                    center={[p.lat, p.lon]}
-                    radius={8 + p.intensity * 22}
-                    pathOptions={{
-                      color: heatFill(p.intensity),
-                      fillColor: heatFill(p.intensity),
-                      fillOpacity: 0.35,
-                      weight: 1,
-                    }}
-                  >
-                    <LTooltip>Score {p.intensity.toFixed(2)}</LTooltip>
-                  </CircleMarker>
-                ))}
-              </MapContainer>
+        <div className="space-y-6">
+          <div className="grid gap-4 lg:grid-cols-5">
+            {/* Heat map view */}
+            <div className="space-y-4 lg:col-span-3">
+              <ChartCard title="Hotspot Heatmap" description="Spatial risk concentration with density markers" bodyClassName="p-0">
+                <div className="relative h-[440px] overflow-hidden rounded-b-xl">
+                  <MapContainer center={CITY_CENTER} zoom={CITY_ZOOM} maxBounds={CITY_BOUNDS} minZoom={10} className={cn("h-full w-full", !HAS_CARTO_KEY && "dark-map-tiles")} scrollWheelZoom>
+                    <TileLayer
+                      url={CARTO_DARK_URL}
+                      attribution={CARTO_ATTRIBUTION}
+                      subdomains={CARTO_SUBDOMAINS}
+                    />
+                    {data.heat_points.map((p, i) => (
+                      <CircleMarker
+                        key={i}
+                        center={[p.lat, p.lon]}
+                        radius={8 + p.intensity * 22}
+                        pathOptions={{
+                          color: heatFill(p.intensity),
+                          fillColor: heatFill(p.intensity),
+                          fillOpacity: 0.38,
+                          weight: 1.5,
+                        }}
+                      >
+                        <LTooltip>Score {p.intensity.toFixed(2)}</LTooltip>
+                      </CircleMarker>
+                    ))}
+                  </MapContainer>
+
+                  {/* Hotspot Intensity Legend */}
+                  <div className="absolute bottom-3 right-3 z-[1000] rounded-xl border border-border/80 bg-card/90 p-3 shadow-lg backdrop-blur-md text-xs space-y-1.5">
+                    <p className="font-semibold text-foreground uppercase tracking-wider text-[10px]">
+                      Hotspot Intensity Scale
+                    </p>
+                    {HOTSPOT_LEGEND.map((item) => (
+                      <div key={item.label} className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ background: item.color }} />
+                        <span className="text-[11px] text-muted-foreground">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </ChartCard>
+
+              {/* Station Comparison Chart under the map */}
+              <ChartCard
+                title="Top Station Risk Comparison"
+                description="Hotspot score vs risk index rating per station jurisdiction"
+              >
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={comparisonData} margin={{ left: -15, right: 10, top: 8, bottom: 20 }}>
+                    <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                      interval={0}
+                      angle={-25}
+                      textAnchor="end"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                      axisLine={false}
+                      tickLine={false}
+                      domain={[0, 100]}
+                      width={35}
+                    />
+                    <RTooltip
+                      contentStyle={{
+                        borderRadius: 8,
+                        border: "1px solid hsl(var(--border))",
+                        background: "hsl(var(--card))",
+                        fontSize: 12,
+                      }}
+                    />
+                    <RLegend
+                      verticalAlign="top"
+                      align="right"
+                      wrapperStyle={{ paddingBottom: 6 }}
+                      formatter={(v) => <span style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}>{v}</span>}
+                    />
+                    <Bar dataKey="Hotspot Score" fill="#f97316" radius={[4, 4, 0, 0]} barSize={14} />
+                    <Bar dataKey="Risk Index" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={14} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
             </div>
-          </ChartCard>
 
           {/* Top 10 ranking */}
           <ChartCard
@@ -119,6 +196,7 @@ export function HotspotsPage() {
             </div>
           </Card>
         </div>
+      </div>
       )}
     </div>
   );

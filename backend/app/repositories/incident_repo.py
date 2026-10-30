@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from typing import Optional, Sequence
 
-from sqlalchemy import Integer, Select, and_, cast, desc, func, or_, select
+from sqlalchemy import Integer, Select, and_, asc, cast, desc, func, or_, select
 
 from app.models.crime import Area, Incident
 from app.models.enums import IncidentStatus, RiskLevel
@@ -57,14 +57,18 @@ class IncidentRepository(BaseRepository[Incident]):
             self._apply_filters(select(func.count(Incident.id)), f)
         ) or 0
 
+        is_asc = order_by.startswith("+") or order_by.endswith("_asc")
+        clean_col = order_by.lstrip("+-").removesuffix("_asc").removesuffix("_desc")
         order_col = {
             "occurred_at": Incident.occurred_at,
             "risk_score": Incident.risk_score,
             "primary_type": Incident.primary_type,
             "crime_id": Incident.crime_id,
-        }.get(order_by, Incident.occurred_at)
+            "police_station": Incident.police_station,
+        }.get(clean_col, Incident.occurred_at)
 
-        stmt = base.order_by(desc(order_col)).offset(skip).limit(limit)
+        sorter = asc(order_col) if is_asc else desc(order_col)
+        stmt = base.order_by(sorter).offset(skip).limit(limit)
         rows = self.db.scalars(stmt).all()
         return rows, total
 

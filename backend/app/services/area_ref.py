@@ -153,6 +153,8 @@ POLICE_STATIONS: dict[int, PoliceStation] = {s.id: s for s in [
         ("Swawalambi Nagar", 21.1450, 79.1520)), 0.9),
 ]}
 
+STATIONS = POLICE_STATIONS
+
 
 # ── Lookups (names kept for backwards compatibility with callers) ──
 def area_name(station_id: Optional[int]) -> str:

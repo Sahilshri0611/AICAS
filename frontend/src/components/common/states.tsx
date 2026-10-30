@@ -10,12 +10,21 @@ export function LoadingState({ label = "Loading…" }: { label?: string }) {
   );
 }
 
-export function EmptyState({ title = "No data", description }: { title?: string; description?: string }) {
+export function EmptyState({
+  title = "No data",
+  description,
+  action,
+}: {
+  title?: string;
+  description?: string;
+  action?: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-16 text-center text-muted-foreground">
       <Inbox className="h-8 w-8 opacity-40" />
       <p className="text-sm font-medium text-foreground">{title}</p>
       {description && <p className="max-w-sm text-xs">{description}</p>}
+      {action && <div className="mt-2">{action}</div>}
     </div>
   );
 }
@@ -35,6 +44,18 @@ export function CardGridSkeleton({ count = 6 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <Skeleton key={i} className="h-32 rounded-xl" />
       ))}
+    </div>
+  );
+}
+
+export function ChartSkeleton({ height = 280 }: { height?: number }) {
+  return (
+    <div className="flex flex-col gap-2 p-2" style={{ height }}>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-4 w-16" />
+      </div>
+      <Skeleton className="flex-1 w-full rounded-lg" />
     </div>
   );
 }

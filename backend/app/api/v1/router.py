@@ -6,11 +6,14 @@ from app.api.v1.endpoints import (
     alerts,
     analytics,
     auth,
+    copilot,
     crimes,
+    evidence,
     fir_parser,
     incidents,
     models,
     network,
+    patrol,
     reference,
 )
 
@@ -24,3 +27,6 @@ api_router.include_router(models.router)
 api_router.include_router(fir_parser.router)
 api_router.include_router(network.router)
 api_router.include_router(reference.router)
+api_router.include_router(patrol.router)
+api_router.include_router(evidence.router)
+api_router.include_router(copilot.router)

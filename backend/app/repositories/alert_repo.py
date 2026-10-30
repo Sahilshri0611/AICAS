@@ -74,6 +74,8 @@ class AlertRepository(BaseRepository[Alert]):
         return self.db.execute(stmt).all()
 
     def daily_trend(self, days: int = 7):
+        now = datetime.utcnow().date()
+        date_map = {(now - timedelta(days=i)): 0 for i in range(days - 1, -1, -1)}
         since = datetime.utcnow() - timedelta(days=days)
         day = func.date(Alert.created_at)
         stmt = (
@@ -82,4 +84,12 @@ class AlertRepository(BaseRepository[Alert]):
             .group_by("d")
             .order_by("d")
         )
-        return self.db.execute(stmt).all()
+        for row in self.db.execute(stmt).all():
+            d_val = row[0]
+            if isinstance(d_val, str):
+                d_val = datetime.strptime(d_val, "%Y-%m-%d").date()
+            elif hasattr(d_val, "date"):
+                d_val = d_val.date()
+            if d_val in date_map:
+                date_map[d_val] = row[1]
+        return [(d, date_map[d]) for d in sorted(date_map.keys())]

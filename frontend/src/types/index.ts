@@ -69,9 +69,28 @@ export interface Suspect {
   description?: string | null;
   vehicle?: string | null;
 }
+export interface MaterialEvidence {
+  id: number;
+  incident_id: number;
+  item_type: string; // Vehicle, Weapon, Stolen Property, Electronic Device, Cash, Narcotics, Other
+  item_name: string;
+  identifier?: string | null; // Plate number, IMEI, serial number
+  description?: string | null;
+  seizure_memo_no?: string | null;
+  seized_at?: string | null;
+  custody_status: string; // In Malkhana, Seized at PS Yard, Sent to FSL, Released on Supurdari
+  custody_location?: string | null;
+  linked_suspect_id?: number | null;
+  seized_by_name?: string | null;
+  created_at?: string | null;
+  crime_id?: string | null;
+  police_station?: string | null;
+}
+
 export interface IncidentDetail extends Incident {
   suspects: Suspect[];
   files: CaseFile[];
+  material_evidences?: MaterialEvidence[];
 }
 
 // ── Case creation / files / import ──
@@ -300,6 +319,10 @@ export interface FIRDoc {
   overall_confidence?: number | null;
   risk_score?: number | null;
   incident_id?: number | null;
+  file_path?: string | null;
+  file_size?: number | null;
+  file_hash?: string | null;
+  original_pdf_stored?: boolean;
   error_message?: string | null;
   created_at: string;
   processed_at?: string | null;
@@ -336,7 +359,7 @@ export interface MLModel {
 export interface GraphNode {
   id: string;
   label: string;
-  type: "Suspect" | "Incident" | "Location";
+  type: "Suspect" | "Incident" | "Location" | "Vehicle";
   degree: number;
   centrality: number;
   component: number;
@@ -359,5 +382,149 @@ export interface NetworkGraph {
     largest_component_size: number;
     isolated_nodes: number;
     top_central_nodes: GraphNode[];
+    kingpins?: GraphNode[];
   };
 }
+
+export interface SuspectDossier {
+  suspect: {
+    id: number;
+    name: string;
+    alias?: string | null;
+    gender: string;
+    age?: number | null;
+    vehicle?: string | null;
+    description?: string | null;
+    threat_score: number;
+    threat_level: string;
+  };
+  total_incidents: number;
+  incidents: {
+    id: number;
+    crime_id: string;
+    primary_type: string;
+    occurred_at: string;
+    area: string;
+    risk_level: string;
+    status: string;
+    description?: string | null;
+  }[];
+  associates: {
+    id: number;
+    name: string;
+    alias?: string | null;
+    vehicle?: string | null;
+  }[];
+}
+
+export interface PathResult {
+  connected: boolean;
+  path: GraphNode[];
+  length: number;
+}
+
+// ── Surveillance ──
+export interface CCTVCamera {
+  id: number;
+  camera_id: string;
+  name: string;
+  location: string;
+  latitude: number | null;
+  longitude: number | null;
+  station_id: number | null;
+  status: 'online' | 'offline' | 'maintenance';
+  camera_type: 'PTZ' | 'Fixed' | 'ANPR';
+  resolution: string;
+  installed_date: string | null;
+  stream_url: string | null;
+  last_ping: string | null;
+  created_at: string;
+}
+
+export interface ANPRDetection {
+  id: number;
+  camera_id: number;
+  plate_number: string;
+  confidence: number;
+  vehicle_make: string | null;
+  vehicle_color: string | null;
+  detected_at: string;
+  is_hotlist_hit: boolean;
+  matched_suspect_id: number | null;
+  alert_generated: boolean;
+}
+
+export interface VehicleHotlistEntry {
+  id: number;
+  plate_number: string;
+  reason: string;
+  suspect_id: number | null;
+  fir_reference: string | null;
+  vehicle_description: string | null;
+  status: 'active' | 'found' | 'removed';
+  added_at: string;
+  found_at: string | null;
+}
+
+export interface SurveillanceDashboard {
+  total_cameras: number;
+  online_cameras: number;
+  offline_cameras: number;
+  anpr_cameras: number;
+  total_detections_today: number;
+  hotlist_hits_today: number;
+  recent_detections: ANPRDetection[];
+  cameras: CCTVCamera[];
+}
+
+// ── Patrol ──
+export interface PatrolWaypoint {
+  name: string;
+  latitude: number;
+  longitude: number;
+  risk_score: number;
+  order: number;
+}
+
+export interface PatrolRoute {
+  id: number;
+  name: string;
+  station_id: number | null;
+  zone: number | null;
+  shift: 'day' | 'night' | 'evening';
+  waypoints: PatrolWaypoint[];
+  total_distance_km: number | null;
+  estimated_duration_min: number | null;
+  priority: 'Critical' | 'High' | 'Medium' | 'Low';
+  status: string;
+  assigned_officer_id: number | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface PatrolBriefing {
+  route: PatrolRoute;
+  station_name: string;
+  zone_name: string;
+  high_risk_areas: { area: string; risk_score: number; recent_count: number }[];
+  recent_incidents: { crime_id: string; type: string; date: string; location: string }[];
+  suggested_strength: number;
+}
+
+// ── Evidence ──
+export interface EvidenceFile {
+  fir_id: number;
+  filename: string;
+  file_size: number | null;
+  file_hash: string | null;
+  stored: boolean;
+  uploaded_at: string;
+}
+
+export interface CustodyEvent {
+  action: string;
+  timestamp: string;
+  actor: string | null;
+  detail: string | null;
+}
+

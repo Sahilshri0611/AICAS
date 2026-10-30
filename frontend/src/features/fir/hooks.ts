@@ -54,3 +54,17 @@ export function useApproveFIR() {
     },
   });
 }
+
+export function useRetryFIR() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { data } = await api.post<FIRParseResult>(`/fir-parser/${id}/retry`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["fir-queue"] });
+    },
+  });
+}
+

@@ -10,6 +10,7 @@ import { LoadingState, EmptyState, ErrorState } from "@/components/common/states
 import { RiskDonut, TrendLine } from "@/components/charts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -82,11 +83,47 @@ export function AlertsPage() {
 
       {/* Dashboard tiles */}
       <div className="mb-6 grid gap-4 md:grid-cols-4">
-        <StatCard
-          kpi={{ key: "active", label: "Active Alerts", value: dash.data?.active_count ?? 0, trend: "up" }}
-          icon={ShieldAlert}
-          accent="critical"
-        />
+        <Card glass className="p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Active Threat Status
+              </span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                <ShieldAlert className="h-4 w-4" />
+              </span>
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <p className="text-3xl font-extrabold tracking-tight tabular-nums text-foreground">
+                {dash.data?.active_count ?? 0}
+              </p>
+              <span className="text-xs font-medium text-destructive">Unresolved Alerts</span>
+            </div>
+          </div>
+
+          {dash.data && (
+            <div className="mt-4 space-y-2 border-t pt-3">
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-md border border-critical/20 bg-critical/5 p-2">
+                  <span className="text-[10px] uppercase font-semibold text-critical">Critical</span>
+                  <p className="text-base font-bold text-critical">
+                    {dash.data.severity_distribution.find((s) => s.level === "Critical")?.count ?? 0}
+                  </p>
+                </div>
+                <div className="rounded-md border border-high/20 bg-high/5 p-2">
+                  <span className="text-[10px] uppercase font-semibold text-high">High</span>
+                  <p className="text-base font-bold text-high">
+                    {dash.data.severity_distribution.find((s) => s.level === "High")?.count ?? 0}
+                  </p>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 pt-1">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                Live police dispatcher queue
+              </p>
+            </div>
+          )}
+        </Card>
         <ChartCard title="Alert Severity" description="Current distribution" className="md:col-span-1">
           {dash.data && <RiskDonut data={dash.data.severity_distribution} height={200} />}
         </ChartCard>

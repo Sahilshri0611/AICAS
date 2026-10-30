@@ -8,7 +8,7 @@ export function AppShell() {
   const [open, setOpen] = useState(false);
   return (
     <div className="min-h-screen app-gradient-bg">
-      <Sidebar open={open} />
+      <Sidebar open={open} onClose={() => setOpen(false)} />
       {open && (
         <div className="fixed inset-0 z-30 bg-slate-900/40 lg:hidden" onClick={() => setOpen(false)} />
       )}

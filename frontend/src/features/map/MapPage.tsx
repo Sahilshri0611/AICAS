@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/select";
 import { RiskBadge } from "@/components/common/RiskBadge";
 import { cn } from "@/lib/utils";
-import { fmtDate } from "@/lib/format";
-import { CITY_BOUNDS, CITY_CENTER, CITY_ZOOM } from "@/lib/geo";
+import { fmtDate, fmtNumber } from "@/lib/format";
+import { CITY_BOUNDS, CITY_CENTER, CITY_ZOOM, CARTO_DARK_URL, CARTO_ATTRIBUTION, CARTO_SUBDOMAINS, HAS_CARTO_KEY } from "@/lib/geo";
 import { useCrimeTypes } from "@/features/records/hooks";
 import { useGeography } from "@/features/reference/hooks";
 import { useMapMarkers, useHeatmap } from "./hooks";
@@ -39,13 +39,29 @@ export function MapPage() {
   const types = useCrimeTypes();
   const data = markers.data ?? [];
 
+  const criticalCount = data.filter((d) => d.risk_level === "Critical").length;
+  const highCount = data.filter((d) => d.risk_level === "High").length;
+  const mediumCount = data.filter((d) => d.risk_level === "Medium").length;
+  const lowCount = data.filter((d) => d.risk_level === "Low").length;
+
   return (
     <div>
       <PageHeader
         title="Incident Map"
         description="Live geographic view of crime across Nagpur City Police jurisdiction."
         icon={MapIcon}
-        actions={<Badge variant="secondary">{data.length} incidents plotted</Badge>}
+        actions={
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-flex cursor-help items-center gap-1.5 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-semibold tabular-nums text-foreground shadow-sm"
+              title="Hardware-accelerated viewport rendering: displays the most recent 2,500 active incidents out of 8,000 for smooth 60fps pan/zoom. Use filters to inspect specific jurisdictions or crime heads."
+            >
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              {fmtNumber(data.length)} incidents plotted
+              <span className="text-[10px] text-muted-foreground font-normal">(viewport cap: 2.5K of 8K)</span>
+            </span>
+          </div>
+        }
       />
 
       <div className="grid gap-4 lg:grid-cols-4">
@@ -122,6 +138,31 @@ export function MapPage() {
             </div>
           </div>
 
+          {/* Viewport Breakdown Widget */}
+          <div className="rounded-lg border bg-card/50 p-3 space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Viewport Incident Breakdown
+            </p>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded border border-destructive/20 bg-destructive/10 p-2 text-center">
+                <span className="text-[10px] text-destructive uppercase font-semibold">Critical</span>
+                <p className="text-base font-bold text-destructive">{fmtNumber(criticalCount)}</p>
+              </div>
+              <div className="rounded border border-high/20 bg-high/5 p-2 text-center">
+                <span className="text-[10px] text-high uppercase font-semibold">High</span>
+                <p className="text-base font-bold text-high">{fmtNumber(highCount)}</p>
+              </div>
+              <div className="rounded border border-medium/20 bg-medium/5 p-2 text-center">
+                <span className="text-[10px] text-medium uppercase font-semibold">Medium</span>
+                <p className="text-base font-bold text-medium">{fmtNumber(mediumCount)}</p>
+              </div>
+              <div className="rounded border border-low/20 bg-low/5 p-2 text-center">
+                <span className="text-[10px] text-muted-foreground uppercase font-semibold">Low</span>
+                <p className="text-base font-bold text-muted-foreground">{fmtNumber(lowCount)}</p>
+              </div>
+            </div>
+          </div>
+
           {selected && (
             <div className="rounded-lg border bg-card p-3">
               <div className="flex items-center justify-between">
@@ -140,10 +181,11 @@ export function MapPage() {
         {/* Map */}
         <Card glass className={cn("overflow-hidden p-0 lg:col-span-3")}>
           <div className="h-[70vh] w-full">
-            <MapContainer center={CITY_CENTER} zoom={CITY_ZOOM} maxBounds={CITY_BOUNDS} minZoom={10} className="h-full w-full" scrollWheelZoom>
+            <MapContainer center={CITY_CENTER} zoom={CITY_ZOOM} maxBounds={CITY_BOUNDS} minZoom={10} className={cn("h-full w-full", !HAS_CARTO_KEY && "dark-map-tiles")} scrollWheelZoom>
               <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url={CARTO_DARK_URL}
+                attribution={CARTO_ATTRIBUTION}
+                subdomains={CARTO_SUBDOMAINS}
               />
               {showHeat && heat.data && <HeatLayer points={heat.data} />}
               {!showHeat && (cluster

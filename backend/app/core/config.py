@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "openai/gpt-oss-120b"
 
+    # ── AI: Google Gemini (Vector RAG & Crime Intelligence Copilot) ──
+    GEMINI_API_KEY: str = ""
+    GEMINI_EMBEDDING_MODEL: str = "models/gemini-embedding-001"
+    GEMINI_CHAT_MODEL: str = "models/gemini-flash-latest"
+
     # ── OCR ──
     TESSERACT_CMD: str = ""
     POPPLER_PATH: str = ""

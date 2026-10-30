@@ -68,9 +68,19 @@
   * {
     @apply border-border;
   }
+  html, body {
+    scrollbar-gutter: stable;
+  }
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv11", "ss01";
+  }
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  :focus:not(:focus-visible) {
+    outline: none !important;
   }
   ::-webkit-scrollbar {
     width: 9px;
@@ -106,7 +116,10 @@
 /* Leaflet fixes */
 .leaflet-container {
   font-family: inherit;
-  background: hsl(var(--muted));
+  background: #0f172a;
+}
+.leaflet-container.dark-map-tiles .leaflet-tile-pane {
+  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
 }
 .leaflet-popup-content-wrapper {
   @apply rounded-lg shadow-lg;

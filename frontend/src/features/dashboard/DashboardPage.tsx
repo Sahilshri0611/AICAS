@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import {
   Activity, BellRing, Flame, FileSearch, Gauge, ScrollText,
   LayoutDashboard, MapPin, TrendingUp, ArrowRight, ShieldAlert,
+  Camera, Radio, Navigation,
 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
@@ -11,6 +12,7 @@ import { RiskBadge } from "@/components/common/RiskBadge";
 import { Badge } from "@/components/ui/badge";
 import { CategoryBar, RiskDonut, TrendLine, WeeklyBar } from "@/components/charts";
 import { fmtNumber } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { useDashboard } from "./hooks";
 import type { KpiCard } from "@/types";
 
@@ -21,6 +23,9 @@ const KPI_META: Record<string, { icon: any; accent: string }> = {
   cases_under_review: { icon: ScrollText, accent: "medium" },
   prediction_accuracy: { icon: Gauge, accent: "success" },
   ai_parsed_firs: { icon: FileSearch, accent: "info" },
+  surveillance_cameras: { icon: Camera, accent: "info" },
+  anpr_hits: { icon: Radio, accent: "critical" },
+  active_patrols: { icon: Navigation, accent: "success" },
 };
 
 export function DashboardPage() {
@@ -141,6 +146,53 @@ export function DashboardPage() {
                   </div>
                 ))}
               </ChartCard>
+            </div>
+
+            {/* Tactical Live Feed Ticker */}
+            <div className="rounded-xl border bg-slate-950 p-4 text-slate-100 shadow-xl">
+              <div className="mb-3 flex items-center justify-between border-b border-slate-800 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+                  </span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Tactical Operations Stream — Live Incidents
+                  </span>
+                </div>
+                <Badge variant="outline" className="border-slate-700 text-[10px] text-slate-400">
+                  AUTO-SYNC
+                </Badge>
+              </div>
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin">
+                {data.recent_incidents.map((inc) => (
+                  <div
+                    key={inc.crime_id}
+                    className="flex min-w-[260px] flex-col justify-between rounded-lg border border-slate-800/80 bg-slate-900/90 p-2.5 text-xs transition-colors hover:border-slate-700"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-bold text-blue-400">{inc.crime_id}</span>
+                      <span
+                        className={cn(
+                          "rounded px-1.5 py-0.5 text-[10px] font-semibold",
+                          inc.risk_level === "Critical"
+                            ? "bg-red-500/20 text-red-400"
+                            : inc.risk_level === "High"
+                            ? "bg-amber-500/20 text-amber-400"
+                            : "bg-blue-500/20 text-blue-400"
+                        )}
+                      >
+                        {inc.risk_level}
+                      </span>
+                    </div>
+                    <p className="mt-1 font-medium text-slate-200 truncate">{inc.primary_type}</p>
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
+                      <span className="truncate">{inc.area}</span>
+                      <span className="font-mono">{inc.occurred_at.slice(11)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

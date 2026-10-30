@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { CircleMarker, MapContainer, TileLayer, Tooltip as LTooltip, useMap, useMapEvents } from "react-leaflet";
-import { CITY_BOUNDS, CITY_CENTER } from "@/lib/geo";
+import { CITY_BOUNDS, CITY_CENTER, CARTO_DARK_URL, CARTO_ATTRIBUTION, CARTO_SUBDOMAINS, HAS_CARTO_KEY } from "@/lib/geo";
+import { cn } from "@/lib/utils";
 import type { PoliceStation } from "@/types";
 
 export type LatLng = { lat: number; lon: number };
@@ -46,10 +47,11 @@ export function LocationPicker({
 
   return (
     <div className="h-64 overflow-hidden rounded-lg border">
-      <MapContainer center={frame} zoom={zoom} maxBounds={CITY_BOUNDS} className="h-full w-full cursor-crosshair" scrollWheelZoom>
+      <MapContainer center={frame} zoom={zoom} maxBounds={CITY_BOUNDS} className={cn("h-full w-full cursor-crosshair", !HAS_CARTO_KEY && "dark-map-tiles")} scrollWheelZoom>
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url={CARTO_DARK_URL}
+          attribution={CARTO_ATTRIBUTION}
+          subdomains={CARTO_SUBDOMAINS}
         />
         <Recenter focus={frame} zoom={zoom} />
         <ClickToPin onPick={onChange} />

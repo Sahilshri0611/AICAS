@@ -2,7 +2,16 @@
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -38,3 +47,10 @@ class FIRDocument(Base, TimestampMixin):
     uploaded_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     processed_at: Mapped[datetime | None] = mapped_column(DateTime)
     error_message: Mapped[str | None] = mapped_column(Text)
+
+    # File storage metadata
+    file_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    file_size: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    file_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    original_pdf_stored: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+

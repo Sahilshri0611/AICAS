@@ -1,7 +1,7 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { fmtCompact, fmtPct } from "@/lib/format";
+import { fmtNumber, fmtPct } from "@/lib/format";
 import type { KpiCard } from "@/types";
 
 const ACCENT: Record<string, string> = {
@@ -25,7 +25,7 @@ export function StatCard({
 }) {
   const trendUp = kpi.trend === "up";
   const trendDown = kpi.trend === "down";
-  const value = kpi.unit === "%" ? `${kpi.value}${kpi.unit}` : fmtCompact(kpi.value);
+  const value = kpi.unit === "%" ? `${kpi.value}${kpi.unit}` : fmtNumber(kpi.value);
 
   return (
     <Card glass className="metric-gradient relative overflow-hidden p-5">

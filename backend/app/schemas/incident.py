@@ -116,9 +116,12 @@ class IncidentRead(BaseModel):
     zone_name: Optional[str] = None
 
 
+from app.schemas.evidence import MaterialEvidenceRead
+
 class IncidentDetail(IncidentRead):
     suspects: List[SuspectRead] = []
     files: List[CaseFileRead] = []
+    material_evidences: List[MaterialEvidenceRead] = []
 
 
 class ImportRowError(BaseModel):

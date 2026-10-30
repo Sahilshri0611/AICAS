@@ -1,24 +1,55 @@
 import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard, Map, FileScan, Database, TrendingUp, Flame,
-  Bell, Share2, Cpu, Settings, ShieldCheck,
+  LayoutDashboard,
+  Map,
+  FileScan,
+  Database,
+  TrendingUp,
+  Flame,
+  Bell,
+  Share2,
+  Cpu,
+  Settings,
+  ShieldCheck,
+  Video,
+  Navigation,
+  Shield,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const NAV = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/map", label: "Incident Map", icon: Map },
-  { to: "/fir", label: "FIR Parser", icon: FileScan },
-  { to: "/records", label: "Crime Records", icon: Database },
-  { to: "/analytics", label: "Predictive Analytics", icon: TrendingUp },
-  { to: "/hotspots", label: "Hotspot Intelligence", icon: Flame },
-  { to: "/alerts", label: "Alerts", icon: Bell },
-  { to: "/network", label: "Network Analysis", icon: Share2 },
-  { to: "/models", label: "Model Management", icon: Cpu },
-  { to: "/settings", label: "Settings", icon: Settings },
+const NAV_GROUPS = [
+  {
+    label: "Operations",
+    items: [
+      { to: "/", label: "Command Dashboard", icon: LayoutDashboard, end: true },
+      { to: "/alerts", label: "Threat Alerts", icon: Bell },
+      { to: "/map", label: "Incident Map", icon: Map },
+      { to: "/patrol", label: "Beat Patrol", icon: Navigation },
+    ],
+  },
+  {
+    label: "Intelligence",
+    items: [
+      { to: "/copilot", label: "AI Copilot & M.O. RAG", icon: Sparkles },
+      { to: "/fir", label: "FIR Parser", icon: FileScan },
+      { to: "/records", label: "Crime Records", icon: Database },
+      { to: "/analytics", label: "Predictive Analytics", icon: TrendingUp },
+      { to: "/hotspots", label: "Hotspot Intelligence", icon: Flame },
+      { to: "/network", label: "Network Analysis", icon: Share2 },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      { to: "/evidence", label: "Evidence Vault", icon: Shield },
+      { to: "/models", label: "Model Management", icon: Cpu },
+      { to: "/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
 
-export function Sidebar({ open }: { open: boolean }) {
+export function Sidebar({ open, onClose }: { open: boolean; onClose?: () => void }) {
   return (
     <aside
       className={cn(
@@ -40,28 +71,39 @@ export function Sidebar({ open }: { open: boolean }) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-        {NAV.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            className={({ isActive }) =>
-              cn(
-                "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <item.icon className={cn("h-[18px] w-[18px]", isActive && "text-primary")} />
-                {item.label}
-              </>
-            )}
-          </NavLink>
+      <nav className="flex-1 space-y-4 overflow-y-auto p-3">
+        {NAV_GROUPS.map((group, groupIdx) => (
+          <div key={group.label} className="space-y-1">
+            {groupIdx > 0 && <div className="my-2 border-t border-border/50" />}
+            <div className="px-3 py-1">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+                {group.label}
+              </p>
+            </div>
+            {group.items.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                onClick={onClose}
+                className={({ isActive }) =>
+                  cn(
+                    "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <item.icon className={cn("h-[18px] w-[18px]", isActive && "text-primary")} />
+                    {item.label}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 

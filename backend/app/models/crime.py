@@ -140,6 +140,14 @@ class Incident(Base, TimestampMixin):
         "CaseFile", cascade="all, delete-orphan", passive_deletes=True,
         order_by="CaseFile.created_at",
     )
+    material_evidences: Mapped[list["MaterialEvidence"]] = relationship(  # noqa: F821
+        "MaterialEvidence", cascade="all, delete-orphan", passive_deletes=True,
+        order_by="MaterialEvidence.created_at",
+    )
+    vector_embedding: Mapped["IncidentEmbedding | None"] = relationship(  # noqa: F821
+        "IncidentEmbedding", cascade="all, delete-orphan", uselist=False,
+        back_populates="incident",
+    )
 
     @property
     def police_station(self) -> str | None:
