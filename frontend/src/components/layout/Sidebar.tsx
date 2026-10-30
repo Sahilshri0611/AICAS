@@ -49,7 +49,18 @@ const NAV_GROUPS = [
   },
 ];
 
+import { useAuthStore } from "@/store/auth";
+import { canAccessRoute, ROLE_DETAILS } from "@/lib/permissions";
+
 export function Sidebar({ open, onClose }: { open: boolean; onClose?: () => void }) {
+  const { user } = useAuthStore();
+  const roleDetail = user?.role ? ROLE_DETAILS[user.role] : null;
+
+  const filteredGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => canAccessRoute(user?.role, item.to)),
+  })).filter((group) => group.items.length > 0);
+
   return (
     <aside
       className={cn(
@@ -72,7 +83,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose?: () => void
 
       {/* Nav */}
       <nav className="flex-1 space-y-4 overflow-y-auto p-3">
-        {NAV_GROUPS.map((group, groupIdx) => (
+        {filteredGroups.map((group, groupIdx) => (
           <div key={group.label} className="space-y-1">
             {groupIdx > 0 && <div className="my-2 border-t border-border/50" />}
             <div className="px-3 py-1">
@@ -107,15 +118,33 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose?: () => void
         ))}
       </nav>
 
-      <div className="border-t border-border p-4">
-        <div className="rounded-lg bg-gradient-to-br from-primary/10 to-blue-500/5 p-3">
-          <p className="text-xs font-semibold">System Status</p>
-          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+      {/* Role & Operational Clearance Card */}
+      <div className="border-t border-border p-3 space-y-2">
+        {roleDetail && (
+          <div className="rounded-lg border border-border/60 bg-muted/40 p-2.5 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                Active Clearance
+              </span>
+              <span className={cn("rounded px-1.5 py-0.2 text-[10px] font-semibold border", roleDetail.badgeClass)}>
+                {roleDetail.shortTitle}
+              </span>
+            </div>
+            <p className="mt-1 font-semibold text-foreground truncate">{user?.department || roleDetail.jurisdiction}</p>
+            <p className="text-[10px] text-muted-foreground truncate">{user?.badge_number ? `Badge #${user.badge_number}` : user?.email}</p>
+          </div>
+        )}
+
+        <div className="rounded-lg bg-gradient-to-br from-primary/10 to-blue-500/5 p-2 px-2.5">
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              Online Status
             </span>
-            All systems operational
+            <span className="font-mono text-[10px] text-emerald-400 font-medium">Encrypted SSL</span>
           </div>
         </div>
       </div>

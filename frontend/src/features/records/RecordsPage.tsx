@@ -135,12 +135,20 @@ export function RecordsPage() {
                 </Button>
               </>
             )}
-            <Button variant="outline" size="sm" onClick={() => doExport("csv")}>
-              <Download className="h-4 w-4" /> CSV
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => doExport("excel")}>
-              <FileSpreadsheet className="h-4 w-4" /> Excel
-            </Button>
+            {can.exportRecords ? (
+              <>
+                <Button variant="outline" size="sm" onClick={() => doExport("csv")}>
+                  <Download className="h-4 w-4" /> CSV
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => doExport("excel")}>
+                  <FileSpreadsheet className="h-4 w-4" /> Excel
+                </Button>
+              </>
+            ) : (
+              <Badge variant="outline" className="text-[11px] py-1 px-2.5 text-muted-foreground border-dashed">
+                Export restricted (Requires Investigator clearance)
+              </Badge>
+            )}
           </>
         }
       />

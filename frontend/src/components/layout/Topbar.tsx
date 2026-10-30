@@ -16,13 +16,18 @@ import { useAuthStore } from "@/store/auth";
 import { initials } from "@/lib/format";
 import { useAlertBadge } from "@/features/alerts/hooks";
 
+import { ROLE_DETAILS, hasPermission } from "@/lib/permissions";
+import { Shield } from "lucide-react";
+import { cn } from "@/lib/utils";
+
 export function Topbar({ onMenu }: { onMenu: () => void }) {
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user, setUser, logout } = useAuthStore();
   const [q, setQ] = useState("");
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const [disclaimerOpen, setDisclaimerOpen] = useState(false);
   const alertCount = useAlertBadge();
+  const roleDetail = user?.role ? ROLE_DETAILS[user.role] : null;
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -51,11 +56,14 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         </form>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Demo Data Badge */}
-          <div className="hidden lg:flex items-center gap-1.5 rounded-full border border-green-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-amber-500">
-            <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-           
-          </div>
+          {/* Active Role Badge in Topbar */}
+          {roleDetail && (
+            <div className={cn("hidden sm:flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold shadow-sm", roleDetail.badgeClass)}>
+              <Shield className="h-3 w-3" />
+              <span>{roleDetail.title}</span>
+            </div>
+          )}
+
 
           {/* Statutory Notice Button */}
           <Button
@@ -68,9 +76,12 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
             <span>BNSS Notice</span>
           </Button>
 
-          <Button size="sm" className="mr-1 hidden sm:inline-flex" onClick={() => navigate("/records?new=1")}>
-            <FilePlus2 className="h-4 w-4" /> New Case
-          </Button>
+          {hasPermission(user?.role, "create_incident") && (
+            <Button size="sm" className="mr-1 hidden sm:inline-flex" onClick={() => navigate("/records?new=1")}>
+              <FilePlus2 className="h-4 w-4" /> New Case
+            </Button>
+          )}
+
           <Button variant="ghost" size="icon" onClick={() => setDark((d) => !d)} title="Toggle theme">
             {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
@@ -92,14 +103,22 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
               </Avatar>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-60">
+          <DropdownMenuContent align="end" className="w-64">
             <DropdownMenuLabel>
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-0.5">
                 <span className="text-sm font-semibold">{user?.full_name}</span>
                 <span className="text-xs font-normal text-muted-foreground">{user?.email}</span>
-                <Badge variant="secondary" className="mt-1.5 w-fit capitalize">
-                  {user?.role}
-                </Badge>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <Badge variant="outline" className={cn("text-[10px] uppercase font-bold", roleDetail?.badgeClass)}>
+                    {user?.role}
+                  </Badge>
+                  {user?.badge_number && (
+                    <span className="font-mono text-[10px] text-muted-foreground">#{user.badge_number}</span>
+                  )}
+                </div>
+                {user?.department && (
+                  <span className="mt-1 text-[10px] text-muted-foreground truncate">{user.department}</span>
+                )}
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

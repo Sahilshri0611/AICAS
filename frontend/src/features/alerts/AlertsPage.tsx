@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { fmtDate } from "@/lib/format";
 import { toast } from "@/hooks/use-toast";
 import { apiError } from "@/lib/api";
+import { useCan } from "@/lib/rbac";
 import {
   useAlerts, useAlertDashboard, useAcknowledgeAlert, useCloseAlert, useAddAlertNote,
 } from "./hooks";
@@ -38,6 +39,7 @@ const SEV_BADGE: Record<string, any> = {
 };
 
 export function AlertsPage() {
+  const can = useCan();
   const [status, setStatus] = useState<string>("all");
   const [severity, setSeverity] = useState<string>("all");
   const [noteFor, setNoteFor] = useState<Alert | null>(null);
@@ -79,6 +81,13 @@ export function AlertsPage() {
         title="Alert Management"
         description="Real-time threat alerting — acknowledge, assign and resolve."
         icon={Bell}
+        actions={
+          !can.manageAlerts ? (
+            <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs py-1 px-2.5">
+              Field Officer View • Read-Only Dispatch
+            </Badge>
+          ) : undefined
+        }
       />
 
       {/* Dashboard tiles */}
@@ -195,19 +204,32 @@ export function AlertsPage() {
                   </div>
                 )}
               </div>
-              <div className="flex shrink-0 gap-1.5">
-                {a.status === "Active" && (
-                  <Button size="sm" variant="outline" onClick={() => doAck(a)}>
-                    <Check className="h-3.5 w-3.5" /> Acknowledge
-                  </Button>
-                )}
-                <Button size="sm" variant="ghost" onClick={() => setNoteFor(a)}>
-                  <MessageSquarePlus className="h-3.5 w-3.5" /> Note
-                </Button>
-                {a.status !== "Closed" && (
-                  <Button size="sm" variant="ghost" className="text-destructive" onClick={() => doClose(a)}>
-                    <XCircle className="h-3.5 w-3.5" /> Close
-                  </Button>
+              <div className="flex shrink-0 items-center gap-1.5">
+                {can.manageAlerts ? (
+                  <>
+                    {a.status === "Active" && (
+                      <Button size="sm" variant="outline" onClick={() => doAck(a)}>
+                        <Check className="h-3.5 w-3.5" /> Acknowledge
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost" onClick={() => setNoteFor(a)}>
+                      <MessageSquarePlus className="h-3.5 w-3.5" /> Note
+                    </Button>
+                    {a.status !== "Closed" && (
+                      <Button size="sm" variant="ghost" className="text-destructive" onClick={() => doClose(a)}>
+                        <XCircle className="h-3.5 w-3.5" /> Close
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => setNoteFor(a)}>
+                      <MessageSquarePlus className="h-3.5 w-3.5" /> Field Note
+                    </Button>
+                    <Badge variant="outline" className="text-[10px] text-muted-foreground border-dashed">
+                      Dispatch Managed
+                    </Badge>
+                  </>
                 )}
               </div>
             </div>

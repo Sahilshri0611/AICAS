@@ -57,6 +57,8 @@ _ROLE_PERMISSIONS: Dict[Role, Set[Permission]] = {
         Permission.CREATE_INCIDENT,
         Permission.PARSE_FIR,
         Permission.VIEW_ALERTS,
+        Permission.VIEW_NETWORK,
+        Permission.VIEW_ANALYTICS,
     },
     Role.INVESTIGATOR: {
         Permission.EDIT_INCIDENT,

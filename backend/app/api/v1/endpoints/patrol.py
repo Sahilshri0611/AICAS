@@ -34,7 +34,7 @@ def list_routes(
     shift: Optional[str] = None,
     status: str = "active",
     db: Session = Depends(get_db),
-    user: User = Depends(require_permission(Permission.VIEW_ANALYTICS)),
+    user: User = Depends(require_permission(Permission.VIEW_INCIDENTS)),
 ):
     return PatrolRouteService(db).list_routes(station_id=station_id, shift=shift, status=status)
 
@@ -43,7 +43,7 @@ def list_routes(
 def get_route(
     route_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(require_permission(Permission.VIEW_ANALYTICS)),
+    user: User = Depends(require_permission(Permission.VIEW_INCIDENTS)),
 ):
     return PatrolRouteService(db).get_route(route_id)
 
